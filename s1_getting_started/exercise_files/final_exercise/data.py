@@ -8,7 +8,7 @@ def mnist():
     # train = torch.randn(50000, 784)
     # test = torch.randn(10000, 784) 
 
-    path = os.path.abspath(os.path.join(os.getcwd(),'data', 'corruptmnist'))
+    path = os.path.abspath(os.path.join(os.getcwd(),'..', '..','..', 'data', 'corruptmnist'))
 
     train_0 = np.load(os.path.join(path, 'train_0.npz'))
     train_1 = np.load(os.path.join(path, 'train_1.npz'))
