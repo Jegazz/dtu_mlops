@@ -1,8 +1,10 @@
 import argparse
+import time
 import sys
-
+import os
+from numpy import mod
 import torch
-
+from torch import nn, optim
 from data import mnist
 from model import MyAwesomeModel
 
@@ -32,11 +34,35 @@ class TrainOREvaluate(object):
         parser.add_argument('--lr', default=0.1)
         # add any additional argument that you want
         args = parser.parse_args(sys.argv[2:])
-        print(args)
-        
+        learning_rate = args.lr
+        experiment_time = time.strftime("%Y%m%d-%H%M%S")
+        model_name = experiment_time + 'MyAwesomeModel' + '.pt'
+       
         # TODO: Implement training loop here
         model = MyAwesomeModel()
+        criterion = nn.NLLLoss()
+        optimizer = optim.Adam(model.parameters(), lr=learning_rate)
         train_set, _ = mnist()
+        trainloader = torch.utild.data.DataLoader(train_set, batch_size = 64, shuffle=True)
+
+        epochs = 30
+        training_loss = []
+
+        for e in range(epochs):
+            epoch_loss = 0
+            model.train()
+            for images, labels in trainloader:
+                optimizer.zero_grad()
+                outputs = model(images)
+                loss = criterion(outputs, labels)
+                loss.backward()
+                optimizer.step()
+                epoch_loss += loss.item()
+
+            training_loss.append(epoch_loss/len(trainloader))
+
+        # Saving Model
+        torch.save(model.state_dict(), os.path.join(os.getcwd(),'trained_models',model_name))
         
     def evaluate(self):
         print("Evaluating until hitting the ceiling")
@@ -47,8 +73,28 @@ class TrainOREvaluate(object):
         print(args)
         
         # TODO: Implement evaluation logic here
-        model = torch.load(args.load_model_from)
+        model = MyAwesomeModel()
+        state_dict = torch.load(os.join.path(os.getcwd(),'trained_models',args.load_model_from))
+        model.load_state_dict(state_dict)
+        model.eval()
+
+        criterion = nn.NLLLoss()
+        
         _, test_set = mnist()
+        testloader = torch.utild.data.DataLoader(test_set, batch_size = 64, shuffle=True)
+
+        with torch.no_grad():
+            accuracy = 0
+            test_loss = 0
+            for images, labels in testloader:
+                outputs = model(images)
+                loss = criterion(outputs, labels)
+                test_loss += loss.item()
+                
+                # Accuracy
+                ps = torch.exp(outputs)
+                equality = (labels.data == ps.max(1)[1])
+                accuracy += equality.type_as(torch.FloatTensor()).mean()
 
 if __name__ == '__main__':
     TrainOREvaluate()
